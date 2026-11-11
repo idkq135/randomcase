@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>RandomCase</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+:root{--bg:#0a0516;--ink:#f8f4ff;--mut:#a99bd6;--v1:#b99cff;--glass:rgba(32,18,70,.6);--line:rgba(165,135,255,.2);--grad:linear-gradient(135deg,#a177ff 0%,#6a3ef0 55%,#5a2ee0 100%);--ok:#4be3a0;--bad:#ff5d86;color-scheme:dark;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html{scroll-padding-top:env(safe-area-inset-top,0px);background:var(--bg);color:var(--ink)}
+*{box-sizing:border-box;margin:0}
+body{font-family:-apple-system,"SF Pro Display","Segoe UI",Roboto,system-ui,sans-serif;min-height:100vh;font-variant-numeric:tabular-nums;overflow-x:hidden;-webkit-tap-highlight-color:transparent}
+body::before,body::after{content:"";position:fixed;z-index:-1;width:80vmax;height:80vmax;border-radius:50%;filter:blur(60px);animation:drift 20s ease-in-out infinite alternate;pointer-events:none}
+body::before{top:-38vmax;left:-30vmax;background:radial-gradient(circle,rgba(112,52,240,.75),transparent 65%)}
+body::after{bottom:-42vmax;right:-34vmax;background:radial-gradient(circle,rgba(210,50,170,.45),transparent 65%);animation-duration:27s}
+@keyframes drift{to{transform:translate(14vmax,9vmax) scale(1.18)}}
+@keyframes in{from{opacity:0;transform:translateY(12px)}}
+@keyframes pop{0%{transform:scale(.55)}60%{transform:scale(1.13)}100%{transform:scale(1)}}
+@keyframes shine{to{transform:translateX(130%)}}
+@keyframes glow{50%{box-shadow:0 0 0 6px rgba(91,47,224,.0),0 14px 40px -6px #9b6dff}}
+.in{animation:in .4s cubic-bezier(.2,.8,.2,1) both}
+[hidden]{display:none!important}
+button{font:inherit;color:inherit;border:0;cursor:pointer;background:none;transition:transform .15s,background .2s,box-shadow .2s}
+button:active{transform:scale(.96)}
+button:focus-visible,input:focus-visible{outline:2px solid var(--v1);outline-offset:2px}
+.wins{border-bottom:1px solid var(--line);background:rgba(10,5,22,.7);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
+.wins-track{display:flex;gap:8px;padding:8px 12px;overflow-x:auto;scrollbar-width:none}
+.wins-track::-webkit-scrollbar{display:none}
+.win{flex:none;padding:6px 12px;border-radius:99px;background:var(--glass);border:1px solid var(--line);font-size:12px;white-space:nowrap;color:var(--mut)}
+.win b{color:var(--ink)}.win em{font-style:normal;color:var(--ok);font-weight:700}
+header{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:16px 14px 6px}
+.logo{flex:0 1 auto;min-width:0;line-height:0;filter:drop-shadow(0 4px 14px rgba(150,100,255,.55))}
+.logo img{display:block;height:26px;width:auto;max-width:100%;object-fit:contain;object-position:left}
+.bar{display:flex;align-items:center;gap:8px}
+.top{position:relative;overflow:hidden;padding:10px 14px;border-radius:14px;background:var(--grad);font-weight:800;font-size:14px;box-shadow:0 8px 22px -8px #8a5bff,inset 0 1px 0 rgba(255,255,255,.4)}
+.top::after,.btn::after{content:"";position:absolute;inset:0;background:linear-gradient(105deg,transparent 35%,rgba(255,255,255,.3) 50%,transparent 65%);transform:translateX(-130%);animation:shine 3.6s ease-in-out infinite}
+.bal{padding:9px 12px;border-radius:14px;background:var(--glass);border:1px solid var(--line);font-size:13px;color:var(--mut);white-space:nowrap}
+.bal b{color:var(--ink);font-size:16px}
+.ava{width:40px;height:40px;border-radius:50%;overflow:hidden;background:var(--grad);border:2px solid var(--v1);display:grid;place-items:center;font-weight:800;flex:none;box-shadow:0 0 18px rgba(160,120,255,.5)}
+.ava img{width:100%;height:100%;object-fit:cover}
+main{padding:12px 14px 40px;max-width:480px;margin:0 auto}
+h1{font-size:28px;font-weight:900;letter-spacing:-.02em;margin:6px 0 18px}
+h2{font-size:24px;font-weight:900;letter-spacing:-.02em}
+.head{display:flex;justify-content:space-between;align-items:center;margin:10px 0 14px}
+.pill{padding:7px 14px;border-radius:99px;border:1px solid var(--line);color:var(--v1);font-size:13px;font-weight:700;background:var(--glass)}
+.nav{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}
+.nav button{display:flex;flex-direction:column;align-items:center;gap:6px;padding:13px 4px 11px;border-radius:20px;background:var(--glass);border:1px solid var(--line);font-weight:700;font-size:13px;color:var(--mut);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+.nav svg{width:25px;height:25px;stroke:currentColor;fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.nav button.on{background:var(--grad);color:#fff;border-color:transparent;transform:translateY(-2px);box-shadow:0 12px 28px -8px #8a5bff,inset 0 1px 0 rgba(255,255,255,.4)}
+.card{position:relative;background:var(--glass);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid var(--line);border-radius:28px;padding:20px;box-shadow:0 24px 50px -22px rgba(100,50,240,.7),inset 0 1px 0 rgba(255,255,255,.09)}
+label{display:flex;justify-content:space-between;margin:16px 0 7px;color:var(--mut);font-size:14px;font-weight:600}
+label b{color:var(--ink)}
+.field{width:100%;padding:15px 16px;border-radius:16px;font:inherit;font-size:18px;font-weight:700;background:rgba(6,2,16,.7);color:var(--ink);border:1px solid var(--line);transition:border-color .2s,box-shadow .2s}
+.field:focus{border-color:var(--v1);box-shadow:0 0 0 4px rgba(161,119,255,.18)}
+input[type=range]{width:100%;accent-color:#a177ff;height:30px}
+.btn{position:relative;overflow:hidden;width:100%;padding:18px;border-radius:20px;font-size:17px;font-weight:900;letter-spacing:.01em;margin-top:16px;background:var(--grad);box-shadow:0 14px 30px -10px #8a5bff,inset 0 1px 0 rgba(255,255,255,.4)}
+.btn:disabled{opacity:.5}.btn:disabled::after{display:none}
+.row{display:flex;justify-content:space-between;align-items:center;margin-top:12px;color:var(--mut);font-size:15px}
+.row b{color:var(--ink);font-size:16px}
+.res{min-height:26px;margin-top:14px;text-align:center;font-weight:800;font-size:17px}
+.res.ok{color:var(--ok);text-shadow:0 0 18px rgba(75,227,160,.6)}.res.bad{color:var(--bad)}
+.note{color:var(--mut);text-align:center;line-height:1.5}
+.ring{position:relative;width:180px;height:180px;margin:0 auto 6px}
+.ring svg{width:100%;height:100%;transform:rotate(-90deg);filter:drop-shadow(0 0 14px rgba(155,109,255,.65))}
+.ring circle{fill:none;stroke-width:10;stroke-linecap:round}
+#uNd{transform-origin:60px 60px;transform-box:view-box}
+.ring .rc{position:absolute;inset:0;display:grid;place-content:center;text-align:center}
+.rc b{font-size:34px;font-weight:900;letter-spacing:-.02em}.rc span{color:var(--mut);font-size:13px}
+.chips{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.chips button{padding:13px 0;border-radius:14px;background:rgba(6,2,16,.6);border:1px solid var(--line);font-weight:800;color:var(--mut)}
+.chips button.on{background:var(--grad);color:#fff;border-color:transparent;box-shadow:0 8px 20px -8px #8a5bff}
+.grid{display:grid;grid-template-columns:repeat(5,1fr);gap:9px;margin-top:14px}
+.cell{aspect-ratio:1;border-radius:14px;background:linear-gradient(160deg,#3a2480,#24124d);border:1px solid var(--line);display:grid;place-items:center;box-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 6px 14px -8px #000}
+.cell svg{width:58%;animation:pop .4s ease both}
+.cell.safe{background:linear-gradient(160deg,rgba(75,227,160,.35),rgba(75,227,160,.1));border-color:var(--ok);color:var(--ok);box-shadow:0 0 18px rgba(75,227,160,.35)}
+.cell.mine{background:linear-gradient(160deg,rgba(255,93,134,.38),rgba(255,93,134,.1));border-color:var(--bad);color:var(--bad);box-shadow:0 0 18px rgba(255,93,134,.35)}
+.cell:disabled{opacity:1}
+.drop{display:flex;justify-content:space-between;padding:12px 12px 12px 14px;margin-top:8px;border-radius:14px;background:rgba(6,2,16,.45);border-left:4px solid #8f82b8}
+.drop.t2{border-color:#5aa9ff}.drop.t3{border-color:#b26bff}.drop.t4{border-color:#ff5db8}
+.drop span{color:var(--mut);font-weight:700}
+.method{display:flex;align-items:center;gap:10px;font-weight:800;font-size:18px;margin-bottom:14px}
+.method i{font-style:normal;font-size:34px;color:#ffbf3c;filter:drop-shadow(0 0 10px rgba(255,191,60,.6))}
+.sum{text-align:center;padding:22px 10px;border-radius:26px;background:var(--glass);border:1px solid var(--line);box-shadow:inset 0 1px 0 rgba(255,255,255,.09)}
+.sum input{width:100%;background:none;border:0;text-align:center;color:var(--ink);font:900 54px/1.1 inherit;font-family:inherit;outline:0;letter-spacing:-.03em}
+.sum small{color:var(--mut)}
+.bonus{display:flex;justify-content:space-between;padding:16px 18px;border-radius:18px;background:linear-gradient(135deg,#6af0b8,#2fd18c);color:#05301f;font-weight:900;margin-top:12px;box-shadow:0 12px 26px -12px #2fd18c}
+.toast{position:fixed;left:16px;right:16px;bottom:calc(20px + env(safe-area-inset-bottom,0px));max-width:448px;margin:0 auto;padding:15px;border-radius:16px;background:rgba(40,24,90,.92);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid var(--line);text-align:center;font-weight:600;opacity:0;transform:translateY(10px);pointer-events:none;transition:.25s}
+.toast.show{opacity:1;transform:none}
+@media (max-width:380px){.logo img{height:22px}.top{padding:9px 10px}.bal{padding:8px 9px}}
+.stage{position:relative;height:250px;margin-top:10px;border-radius:20px;overflow:hidden;background:rgba(6,2,16,.55);border:1px solid var(--line)}
+.stage canvas{position:absolute;inset:0;width:100%;height:100%}
+.cm{position:absolute;left:16px;top:12px;font-size:46px;font-weight:900;letter-spacing:-.03em;text-shadow:0 0 24px rgba(161,119,255,.7)}
+.cm.bad{color:var(--bad);text-shadow:0 0 24px rgba(255,93,134,.7)}
+.cs{position:absolute;left:18px;top:68px;color:var(--mut);font-weight:700;font-size:14px}
+.hist{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;min-height:28px}
+.hist span{flex:none;padding:5px 10px;border-radius:99px;font-size:12px;font-weight:800;background:rgba(6,2,16,.6);border:1px solid var(--line);color:var(--mut)}
+.hist span.hi{color:var(--ok);border-color:rgba(75,227,160,.4)}
+.autor{display:flex;justify-content:space-between;align-items:center;margin:16px 0 8px;color:var(--mut);font-weight:600;font-size:14px}
+.autor input{width:24px;height:24px;accent-color:#a177ff}
+.pk{display:block;width:100%;height:340px;margin-bottom:14px;border-radius:20px;background:rgba(6,2,16,.55);border:1px solid var(--line)}
+.bj-top{display:flex;justify-content:space-between;align-items:center;color:var(--mut);font-weight:700}
+.pts{min-width:34px;text-align:center;padding:3px 10px;border-radius:99px;background:rgba(6,2,16,.7);border:1px solid var(--line);color:var(--ink);font-size:15px}
+.bj-top.lg .pts{font-size:20px;padding:4px 14px}
+.hand{display:flex;gap:7px;min-height:64px;justify-content:center;flex-wrap:wrap;margin:9px 0}
+.hand.lg{min-height:92px;margin:11px 0 9px}
+.bj-line{height:1px;background:linear-gradient(90deg,transparent,var(--line),transparent);margin:12px 0}
+.pc{width:44px;height:62px;border-radius:9px;background:linear-gradient(160deg,#fff,#e6deff);color:#1b1038;display:flex;flex-direction:column;align-items:center;justify-content:center;font-weight:900;font-size:17px;box-shadow:0 8px 18px -8px #000;animation:deal .55s cubic-bezier(.2,.9,.3,1.2) both}
+.pc i{font-style:normal;font-size:20px;line-height:1}
+.pc.red{color:#d6245a}
+.hand.lg .pc{width:62px;height:88px;font-size:24px;border-radius:12px}
+.hand.lg .pc i{font-size:28px}
+@keyframes deal{from{opacity:0;transform:translate(-80px,-110px) rotate(-20deg) scale(.5)}}
+@keyframes shake{20%,60%{transform:translateX(-6px)}40%,80%{transform:translateX(6px)}}
+.hand.win .pc{animation:none;box-shadow:0 0 0 2px var(--ok),0 0 24px rgba(75,227,160,.7)}
+.hand.lose{animation:shake .5s}.hand.lose .pc{animation:none;box-shadow:0 0 0 2px var(--bad),0 0 20px rgba(255,93,134,.5)}
+.bj-act{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;transition:opacity .2s}
+.bj-act .btn{margin-top:14px;padding:15px 4px;font-size:15px}
+.bj-act .btn.one{grid-column:1/-1;font-size:17px}
+.pop{animation:pop .45s ease both}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wins" id="winsBox" aria-label="Последние выигрыши" hidden><div class="wins-track" id="wins"></div></div>
+<header>
+  <button class="logo" id="logo" aria-label="RandomCase, на главную"><img src="data:image/png;base64,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" alt="RandomCase" width="194" height="36"></button>
+  <div class="bar">
+    <button class="top" id="toTopup">Пополнить</button>
+    <div class="bal"><b id="balance">0</b> RC</div>
+    <button class="ava" id="avatar" aria-label="Профиль"></button>
+  </div>
+</header>
+<main>
+  <section id="home">
+    <div class="head"><h2>Игры</h2><button class="pill" id="toAdmin" hidden>Админ</button></div>
+    <nav class="nav" id="nav"></nav>
+    <div id="game"></div>
+  </section>
+
+  <section id="topup" hidden>
+    <h1>Пополнить баланс</h1>
+    <div class="method"><i>★</i> Telegram Stars</div>
+    <div class="sum"><input id="sum" type="text" inputmode="numeric" value="1 000" aria-label="Количество звёзд"><small>от 10 до 100 000</small></div>
+    <div class="chips" id="quick" style="margin-top:12px">
+      <button data-v="500">500</button><button data-v="1000">1 000</button><button data-v="3000">3 000</button><button data-v="5000">5 000</button>
+    </div>
+    <div class="bonus"><span>Бонус +5%</span><b id="bonus">+50</b></div>
+    <p class="row" style="justify-content:center">Вы получите&nbsp;<b id="total">1 050</b>&nbsp;RCoin</p>
+    <button class="btn" id="pay">Оплатить звездами</button>
+  </section>
+
+  <section id="admin" hidden>
+    <h1>Выдать RCoin</h1>
+    <label for="aUser">Юзернейм игрока</label>
+    <input id="aUser" class="field" placeholder="например, durov" autocapitalize="off" autocomplete="off">
+    <label for="aAmount">Количество RCoin</label>
+    <input id="aAmount" class="field" inputmode="numeric" placeholder="1000">
+    <button class="btn" id="grant">Выдать</button>
+    <p class="note" style="margin-top:14px">Игрок должен хотя бы раз открыть бота.</p>
+  </section>
+</main>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+/* ============ SUPABASE ============
+   Сюда вставьте данные проекта (Project Settings → API).
+   В anonKey — ТОЛЬКО публичный anon-ключ. Ключ service_role сюда нельзя:
+   он живёт только на сервере бота. Сейчас приложение общается с ботом через API_URL,
+   а эти поля нужны, если позже подключите чтение данных напрямую. */
+const SUPABASE = { url: "https://fnpihuxxohbztntqmpti.supabase.co", anonKey: "" };
+
+/* Адрес API бота. Пока пусто — работает демо (всё считается на телефоне).
+   В настоящей игре результаты ставок считает только сервер. */
+const API_URL = "";
+
+const tg = window.Telegram && window.Telegram.WebApp;
+if (tg) { tg.ready(); tg.expand(); }
+const HOUSE_EDGE = 0.0303, MIN_SUM = 10, MAX_SUM = 100000;
+const UP_EDGE = 0.06; // комиссия сайта в Апгрейде: шанс = (100 / множитель) × 0,94
+const WINS_ENABLED = !!(SUPABASE.url && API_URL); // лента выигрышей работает только при подключённом Supabase
+const DROPS = [[1,35],[3,25],[5,20],[24,10],[40,8.89],[80,1],[160,0.1],[501,0.01]];
+const mskDay = () => new Date(Date.now() + 3 * 3600e3).toISOString().slice(0, 10);
+const nextMsk = () => { const d = new Date(Date.now() + 3 * 3600e3); return Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate() + 1) - 3 * 3600e3; };
+const $ = (s) => document.querySelector(s);
+const fmt = (n) => Number(n).toLocaleString("ru-RU");
+const digits = (s) => parseInt(String(s).replace(/\D/g, ""), 10) || 0;
+const bonusOf = (s) => Math.floor(s * 5 / 100);
+const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const state = { balance: 0, role: "player", name: "Игрок", photo: "" };
+let shown = 0;
+function setBal(n) { // плавный счётчик баланса
+  const from = shown, t0 = performance.now(); shown = n;
+  const step = (t) => { const k = Math.min(1, (t - t0) / 700), e = 1 - Math.pow(1 - k, 3);
+    $("#balance").textContent = fmt(Math.round(from + (n - from) * e)); if (k < 1) requestAnimationFrame(step); };
+  requestAnimationFrame(step);
+}
+const replay = (el) => { el.classList.remove("in"); void el.offsetWidth; el.classList.add("in"); };
+
+/* ============ API ============ */
+async function api(path, body) {
+  if (!API_URL) return demo(path, body);
+  const r = await fetch(API_URL + path, { method: body ? "POST" : "GET",
+    headers: { "Content-Type": "application/json", "X-Init-Data": (tg && tg.initData) || "" },
+    body: body ? JSON.stringify(body) : undefined });
+  const d = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(d.error || "Ошибка сервера");
+  return d;
+}
+
+/* Множитель «Мин
+»: floor( П (N-i)/(A-i) * (1-h) ), i = 0..s-1 */
+function minesMult(m, s) {
+  const N = 25, A = N - m; let r = 1;
+  for (let i = 0; i < s; i++) r *= (N - i) / (A - i);
+  return Math.floor(r * (1 - HOUSE_EDGE));
+}
+
+/* Демо-сервер (в бою эту логику выполняет бот) */
+const PLINKO = {"low": [1568, 882, 196, 137, 137, 118, 108, 98, 49, 98, 108, 118, 137, 137, 196, 882, 1568], "medium": [10779, 4018, 980, 490, 294, 147, 98, 49, 29, 49, 98, 147, 294, 490, 980, 4018, 10779], "high": [98003, 12740, 2548, 882, 392, 196, 20, 20, 20, 20, 20, 196, 392, 882, 2548, 12740, 98003]};
+const bjScore = (c) => { let t = 0, a = 0; for (const x of c) { const r = x % 13; t += r === 0 ? 11 : Math.min(r + 1, 10); if (r === 0) a++; } while (t > 21 && a) { t -= 10; a--; } return t; };
+const bjHits = (d, p) => d >= 21 ? false : d < 12 ? true : d < p ? Math.random() < (d < 17 ? 0.8 : 0.15) : d === p ? Math.random() < (d < 17 ? 0.2 : 0.03) : Math.random() < (d < 17 ? 0.06 : 0.01);
+let bjg = null;
+function bjView(st, pay) { return { active: !st, bet: bjg.bet, player: bjg.p, dealer: bjg.d, ps: bjScore(bjg.p), ds: bjScore(bjg.d), status: st || "play", payout: pay || 0 }; }
+function demoBj(path, b, db, save, take) {
+  const end = (st, pay) => { const v = bjView(st, pay); bjg = null; db.balance += pay || 0; save(); return v; };
+  const stand = () => { const ps = bjScore(bjg.p); while (bjHits(bjScore(bjg.d), ps)) bjg.d.push(bjg.deck.pop());
+    const ds = bjScore(bjg.d); return ds > 21 || ps > ds ? end("win", bjg.bet * 2) : ps === ds ? end("push", bjg.bet) : end("lose", 0); };
+  if (path === "/api/bj/state") return bjg ? bjView() : { active: false };
+  if (path === "/api/bj/start") {
+    if (bjg) return bjView();
+    if (!(b.bet >= 10)) throw new Error("Минимальная ставка 10 RCoin");
+    take(b.bet); const deck = [...Array(52).keys()].sort(() => Math.random() - 0.5);
+    bjg = { bet: b.bet, deck, p: [deck.pop(), deck.pop()], d: [deck.pop(), deck.pop()] }; save();
+    return bjScore(bjg.p) === 21 ? stand() : bjView();
+  }
+  if (!bjg) throw new Error("Игра не начата");
+  const n = { stand: 0, hit: 1, hit2: 2 }[b.action]; if (n === undefined) throw new Error("Неизвестное действие");
+  for (let i = 0; i < n; i++) { bjg.p.push(bjg.deck.pop()); if (bjScore(bjg.p) >= 21) break; }
+  const ps = bjScore(bjg.p);
+  if (ps > 21) return end("lose", 0);
+  return n && ps < 21 ? bjView() : stand();
+}
+let dg = null;
+function prng(a) { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }
+function demoSched() { // детерминированное расписание раундов: у всех вкладок раунд и крах одинаковые
+  const now = Date.now(), day = Math.floor(now / 864e5); let t = day * 864e5, n = 0, hist = [];
+  for (;;) {
+    const c = Math.max(100, Math.min(99999, Math.floor(97 / (1 - prng(day * 1e5 + n))))), run = Math.log(c / 100) / 0.1 * 1000;
+    if (now < t + 10000 + run) return { id: day * 1e5 + n, c, startsAt: t + 10000, phase: now < t + 10000 ? "wait" : "run", last: hist[hist.length - 1] || null, history: hist.slice(-12) };
+    hist.push(c); t += 10000 + run; n++;
+  }
+}
+function demoCrash(path, b, db, save, take) {
+  const sc = demoSched(), now = Date.now(), m100 = (t) => Math.min(99999, Math.floor(100 * Math.exp(0.1 * t) + 1e-9));
+  let cb = db.cb; const payAt = (m) => { cb.cashed = m; cb.payout = Math.floor(cb.bet * m / 100); db.balance += cb.payout; save(); };
+  if (cb && cb.round !== sc.id && !cb.done) { cb.done = true; if (cb.cashed == null && cb.auto && cb.auto < cb.c) payAt(cb.auto); save(); }
+  let mine = cb && cb.round === sc.id ? cb : null;
+  if (mine && sc.phase === "run" && mine.cashed == null && mine.auto && mine.auto < mine.c && m100((now - sc.startsAt) / 1000) >= mine.auto) payAt(mine.auto);
+  if (path === "/api/crash/bet") {
+    if (sc.phase !== "wait" || mine) throw new Error("Ставки сейчас не принимаются");
+    take(b.bet); db.cb = { round: sc.id, bet: b.bet, auto: b.auto ? Math.round(b.auto * 100) : null, c: sc.c, cashed: null, payout: 0 }; save(); return {};
+  }
+  if (path === "/api/crash/cashout") {
+    const m = m100((now - sc.startsAt) / 1000);
+    if (!mine || mine.cashed != null || sc.phase !== "run" || m >= sc.c) throw new Error("Сейчас нечего выводить");
+    payAt(m); return { mult: m, payout: mine.payout };
+  }
+  return { phase: sc.phase, round: sc.id, now, startsAt: sc.startsAt, startedAt: sc.startsAt, last: sc.last, history: sc.history, players: 0, bank: 0,
+    mine: mine && { bet: mine.bet, auto: mine.auto, cashed: mine.cashed, payout: mine.payout } };
+}
+function demo(path, b) {
+  let db = { balance: 100 };
+  try { db = JSON.parse(localStorage.getItem("rc_demo")) || db; } catch (e) {}
+  const save = () => { try { localStorage.setItem("rc_demo", JSON.stringify(db)); } catch (e) {} };
+  const take = (bet) => { if (!(bet >= 1) || bet > db.balance) throw new Error("Недостаточно RCoin"); db.balance -= bet; };
+  const u = tg && tg.initDataUnsafe && tg.initDataUnsafe.user;
+  switch (path) {
+    case "/api/me": return { balance: db.balance, role: location.search.includes("admin") ? "admin" : "player",
+      name: (u && u.first_name) || "Игрок", photo: (u && u.photo_url) || "" };
+    case "/api/wins": return [];
+    case "/api/topup": db.balance += b.stars + bonusOf(b.stars); save(); return { demo: true };
+    case "/api/admin/grant": db.balance += b.amount; save(); return { ok: true };
+    case "/api/upgrade": {
+      take(b.bet);
+      const mult = Math.min(20, Math.max(1.5, b.mult));
+      const win = Math.random() * 100 < (100 / mult) * (1 - UP_EDGE);
+      const payout = win ? Math.floor(b.bet * mult) : 0;
+      db.balance += payout; save(); return { win, payout };
+    }
+    case "/api/case/status": return { available: db.caseDay !== mskDay(), nextAt: nextMsk() };
+    case "/api/case/open": {
+      if (db.caseDay === mskDay()) throw new Error("Кейс уже открыт сегодня");
+      let r = Math.random() * 100, v = DROPS[DROPS.length - 1][0];
+      for (const [val, ch] of DROPS) { if (r < ch) { v = val; break; } r -= ch; }
+      db.caseDay = mskDay(); db.balance += v; save(); return { value: v, nextAt: nextMsk() };
+    }
+    case "/api/plinko/play": {
+      take(b.bet); const path = Array.from({ length: 16 }, () => (Math.random() < 0.5 ? 1 : 0)), slot = path.reduce((a, x) => a + x, 0);
+      const mult = PLINKO[b.risk][slot], payout = Math.floor(b.bet * mult / 100); db.balance += payout; save(); return { path, slot, mult, payout };
+    }
+    case "/api/bj/state": case "/api/bj/start": case "/api/bj/action": return demoBj(path, b, db, save, take);
+    case "/api/crash/state": case "/api/crash/bet": case "/api/crash/cashout": return demoCrash(path, b, db, save, take);
+    case "/api/mines/start": {
+      take(b.bet);
+      const cells = [...Array(25).keys()].sort(() => Math.random() - .5);
+      dg = { bet: b.bet, m: b.mines, mines: cells.slice(0, b.mines), opened: [] }; save(); return {};
+    }
+    case "/api/mines/pick": {
+      if (!dg || dg.opened.includes(b.cell)) throw new Error("Игра не начата");
+      if (dg.mines.includes(b.cell)) { const mines = dg.mines; dg = null; return { hit: true, mines }; }
+      dg.opened.push(b.cell);
+      const mult = minesMult(dg.m, dg.opened.length);
+      if (dg.opened.length === 25 - dg.m) { const p = dg.bet * mult, mines = dg.mines; dg = null; db.balance += p; save(); return { hit: false, mult, done: true, payout: p, mines }; }
+      return { hit: false, mult };
+    }
+    case "/api/mines/cashout": {
+      if (!dg || !dg.opened.length) throw new Error("Сначала откройте клетку");
+      const p = dg.bet * minesMult(dg.m, dg.opened.length), mines = dg.mines; dg = null;
+      db.balance += p; save(); return { payout: p, mines };
+    }
+  }
+  throw new Error("Неизвестный запрос");
+}
+
+/* ============ Экраны, шапка ============ */
+function show(id) {
+  ["home", "topup", "admin"].forEach((s) => ($("#" + s).hidden = s !== id));
+  if (tg) id === "home" ? tg.BackButton.hide() : tg.BackButton.show();
+  replay($("#" + id)); window.scrollTo(0, 0);
+}
+if (tg) tg.BackButton.onClick(() => show("home"));
+let tt; function toast(m) { const t = $("#toast"); t.textContent = m; t.classList.add("show"); clearTimeout(tt); tt = setTimeout(() => t.classList.remove("show"), 3000); }
+
+function renderMe() {
+  setBal(state.balance);
+  $("#toAdmin").hidden = state.role !== "admin";
+  $("#avatar").innerHTML = state.photo ? `<img src="${esc(state.photo)}" alt="">` : esc((state.name || "И")[0].toUpperCase());
+}
+async function loadMe() { Object.assign(state, await api("/api/me")); renderMe(); }
+async function loadWins() {
+  const l = await api("/api/wins"); $("#winsBox").hidden = !l.length;
+  $("#wins").innerHTML = l.map((w) => `<div class="win"><b>${esc(w.username)}</b> · ${esc(w.item)} · <em>${fmt(w.value)} RC</em></div>`).join("");
+}
+
+/* ============ Игры ============ */
+const GAMES = [["upgrade","Апгрейд"],["crash","Краш"],["bj","Блэкджек"],["mines","Мины"],["cases","Кейсы"],["plinko","Plinko"]];
+let cur = "upgrade", mg = null, crashStop = null;
+const ICO = {"upgrade": "<path d=\"M7 17L17 7M9 7h8v8\"/>", "crash": "<path d=\"M3 17l5-6 4 3 8-9M16 5h4v4\"/>", "bj": "<rect x=\"5\" y=\"3\" width=\"14\" height=\"18\" rx=\"2.5\"/><path d=\"M12 8l3 4-3 4-3-4z\"/>", "mines": "<circle cx=\"12\" cy=\"14\" r=\"6\"/><path d=\"M12 8V5M15.500 6l1.500-1.500M8.500 6L7 4.500\"/>", "cases": "<path d=\"M4 9h16v11H4zM4 9l2-5h12l2 5M12 9v11\"/>", "plinko": "<path stroke-width=\"3.500\" d=\"M12 4h.01M8 9h.01M16 9h.01M4 14h.01M12 14h.01M20 14h.01M8 19h.01M16 19h.01\"/>"};
+$("#nav").innerHTML = GAMES.map(([id, n]) => `<button data-g="${id}"><svg viewBox="0 0 24 24">${ICO[id]}</svg>${n}</button>`).join("");
+const GEM = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3l8 6-8 12L4 9z"/></svg>', BOMB = '<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="14" r="7"/><path d="M12 7V4M16 6l2-2M8 6L6 4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
+$("#nav").addEventListener("click", (e) => { const b = e.target.closest("button"); if (b) openGame(b.dataset.g); });
+function openGame(id) {
+  if (crashStop) { crashStop(); crashStop = null; }
+  cur = id; replay($("#game"));
+  document.querySelectorAll("#nav button").forEach((b) => b.classList.toggle("on", b.dataset.g === id));
+  ({ upgrade: gUpgrade, crash: gCrash, plinko: gPlinko, bj: gBlackjack, mines: gMines, cases: gCases }[id] || gSoon)();
+}
+function gSoon() { $("#game").innerHTML = `<div class="card note"><h2 style="color:var(--text);margin-bottom:8px">Скоро</h2>Приложение готово не до конца. Скоро этот режим будет работать.</div>`; }
+
+/* --- Апгрейд --- */
+async function spin(win, mult) { // стрелка крутится и останавливается на результате, который посчитал сервер
+  const nd = $("#uNd"); if (!nd) return;
+  const arc = (100 / mult) * (1 - UP_EDGE) * 3.6, pad = Math.min(4, arc / 3);
+  const a = win ? pad + Math.random() * (arc - 2 * pad) : arc + pad + Math.random() * (360 - arc - 2 * pad);
+  nd.style.transition = "none"; nd.style.transform = "rotate(0deg)"; void nd.getBoundingClientRect();
+  nd.style.transition = "transform 2.4s cubic-bezier(.1,.75,.12,1)"; nd.style.transform = `rotate(${1080 + a}deg)`;
+  await new Promise((r) => setTimeout(r, 2500));
+  if (tg && tg.HapticFeedback) tg.HapticFeedback.notificationOccurred(win ? "success" : "error");
+}
+function gUpgrade() {
+  $("#game").innerHTML = `<div class="card">
+    <div class="ring"><svg viewBox="0 0 120 120"><defs><linearGradient id="ug" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#d2b8ff"/><stop offset="1" stop-color="#7c4dff"/></linearGradient></defs><circle cx="60" cy="60" r="52" stroke="rgba(6,2,16,.8)"/><circle id="uArc" cx="60" cy="60" r="52" stroke="url(#ug)"/><g id="uNd"><circle cx="112" cy="60" r="7" fill="#fff" stroke="#6a3ef0" stroke-width="3"/></g></svg>
+    <div class="rc"><b id="uCh">20%</b><span>шанс</span></div></div>
+    <label for="uBet">Ставка, RCoin</label>
+09:01
+<input id="uBet" class="field" inputmode="numeric" value="1">
+    <label for="uMult">Множитель <b id="uMv">x5</b></label>
+    <input id="uMult" type="range" min="1.5" max="20" step="0.1" value="5">
+    <p class="row">Выигрыш при успехе <b id="uPay">5 RCoin</b></p>
+    <p class="row">Комиссия сайта <b>6%</b></p>
+    <button class="btn" id="uGo">Апгрейд</button><p class="res" id="uRes"></p></div>`;
+  const calc = () => {
+    const m = +$("#uMult").value, bet = digits($("#uBet").value), ch = (100 / m) * (1 - UP_EDGE), C = 2 * Math.PI * 52;
+    $("#uMv").textContent = "x" + m.toFixed(1).replace(".", ",");
+    $("#uCh").textContent = +ch.toFixed(2) + "%";
+    $("#uArc").setAttribute("stroke-dasharray", `${ch / 100 * C} ${C}`);
+    $("#uPay").textContent = fmt(Math.floor(bet * m)) + " RCoin";
+  };
+  $("#uMult").oninput = $("#uBet").oninput = calc; calc();
+  $("#uGo").onclick = async () => {
+    const bet = digits($("#uBet").value), mult = +$("#uMult").value, r = $("#uRes");
+    if (bet < 1) return toast("Минимальная ставка 1 RCoin");
+    $("#uGo").disabled = true; r.textContent = ""; r.className = "res";
+    try {
+      const d = await api("/api/upgrade", { bet, mult });
+      await spin(d.win, mult);
+      r.className = "res " + (d.win ? "ok" : "bad");
+      r.textContent = d.win ? "Успех! +" + fmt(d.payout) + " RCoin" : "Не повезло, ставка сгорела";
+      await loadMe();
+    } catch (e) { toast(e.message); }
+    $("#uGo").disabled = false;
+  };
+}
+
+/* --- Мины --- */
+function gMines() {
+  if (mg) return drawMines();
+  let sel = 3;
+  $("#game").innerHTML = `<div class="card"><label for="mBet" style="margin-top:0">Ставка, RCoin</label>
+    <input id="mBet" class="field" inputmode="numeric" value="1">
+    <label>Количество мин</label>
+    <div class="chips" id="mChips">${[3,6,9,12,15,18,22,24].map((n) => `<button data-n="${n}" class="${n === 3 ? "on" : ""}">${n}</button>`).join("")}</div>
+    <button class="btn" id="mGo">Играть</button></div>`;
+  $("#mChips").onclick = (e) => { const b = e.target.closest("button"); if (!b) return; sel = +b.dataset.n;
+    document.querySelectorAll("#mChips button").forEach((x) => x.classList.toggle("on", x === b)); };
+  $("#mGo").onclick = async () => {
+    const bet = digits($("#mBet").value);
+    if (bet < 1) return toast("Минимальная ставка 1 RCoin");
+    try { await api("/api/mines/start", { bet, mines: sel }); await loadMe();
+      mg = { bet, mines: sel, opened: [], mult: 0, over: false, reveal: null, msg: "" }; drawMines();
+    } catch (e) { toast(e.message); }
+  };
+}
+function drawMines() {
+  const cells = [...Array(25).keys()].map((i) => {
+    const o = mg.opened.includes(i), m = mg.reveal && mg.reveal.includes(i);
+    return `<button class="cell ${o ? "safe" : ""} ${m ? "mine" : ""}" data-i="${i}" ${mg.over || o ? "disabled" : ""} aria-label="Клетка ${i + 1}">${o ? GEM : m ? BOMB : ""}</button>`;
+  }).join("");
+  const pay = mg.bet * mg.mult;
+  $("#game").innerHTML = `<div class="card"><div class="row" style="margin-top:0"><span>Мин: <b>${mg.mines}</b></span><span>Шагов: <b>${mg.opened.length}</b></span><span>Множитель: <b>${mg.opened.length ? "x" + mg.mult : "—"}</b></span></div>
+    <div class="grid" id="grid">${cells}</div><p class="res ${mg.cls || ""}">${mg.msg}</p>
+    ${mg.over ? `<button class="btn" id="mAgain">Играть снова</button>`
+      : `<button class="btn" id="mCash" ${mg.opened.length ? "" : "disabled"}>${mg.opened.length ? "Забрать " + fmt(pay) + " RCoin" : "Откройте клетку"}</button>`}</div>`;
+  $("#grid").onclick = async (e) => {
+    const c = e.target.closest(".cell"); if (!c || mg.over) return;
+    try {
+      const i = +c.dataset.i, d = await api("/api/mines/pick", { cell: i });
+      if (d.hit) { mg.over = true; mg.reveal = d.mines; mg.opened = mg.opened; mg.msg = "Мина! Ставка сгорела"; mg.cls = "bad"; }
+      else { mg.opened.push(i); mg.mult = d.mult;
+        if (d.done) { mg.over = true; mg.reveal = d.mines.filter((x) => !mg.opened.includes(x)); mg.msg = "Всё поле пройдено! +" + fmt(d.payout) + " RCoin"; mg.cls = "ok"; await loadMe(); } }
+      drawMines();
+    } catch (err) { toast(err.message); }
+  };
+  const cash = $("#mCash");
+  if (cash) cash.onclick = async () => {
+    try { const d = await api("/api/mines/cashout", {}); mg.over = true; mg.reveal = d.mines.filter((x) => !mg.opened.includes(x));
+      mg.msg = "Забрали +" + fmt(d.payout) + " RCoin"; mg.cls = "ok"; await loadMe(); drawMines();
+    } catch (err) { toast(err.message); }
+  };
+  const again = $("#mAgain"); if (again) again.onclick = () => { mg = null; gMines(); };
+}
+
+/* --- Plinko --- */
+function gPlinko() {
+  let risk = "medium", alive = true, raf = 0;
+  const balls = [], pops = [], pegHit = {}, slotHit = {}, SEG = 150, H = 340;
+  $("#game").innerHTML = `<div class="card"><canvas class="pk" id="pk"></canvas>
+    <label style="margin:0 0 7px">Риск</label><div class="chips" style="grid-template-columns:repeat(3,1fr)" id="pkRisk">
+    <button data-r="low">Низкий</button><button data-r="medium" class="on">Средний</button><button data-r="high">Высокий</button></div>
+    <label for="pkBet">Ставка, RCoin</label><input id="pkBet" class="field" inputmode="numeric" value="1">
+    <button class="btn" id="pkGo">Бросить шарик</button><p class="res" id="pkRes"></p></div>`;
+  const cvs = $("#pk"), ctx = cvs.getContext("2d");
+  const rr = (x, y, w, h, r) => { ctx.beginPath(); if (ctx.roundRect) ctx.roundRect(x, y, w, h, r); else ctx.rect(x, y, w, h); };
+  const col = (m) => `hsl(${262 + Math.min(1, Math.log10(Math.max(m, 20) / 20) / 3.7) * 82},85%,58%)`;
+  const lab = (m) => { const v = m / 100; return v >= 10 ? String(Math.round(v)) : String(+v.toFixed(1)).replace(".", ","); };
+  const rowY = (i) => 24 + i * 17.5;
+  $("#pkRisk").onclick = (e) => { const b = e.target.closest("button"); if (!b) return; risk = b.dataset.r; document.querySelectorAll("#pkRisk button").forEach((x) => x.classList.toggle("on", x === b)); };
+
+  function launch(d, bet) { // готовим точки маршрута: падение, 16 отскоков, ячейка
+    const W = cvs.clientWidth, dx = (W - 24) / 17, cx = W / 2, P = [[cx, 4]]; let off = 0;
+    for (let i = 0; i < 16; i++) { P.push([cx + off * dx / 2, rowY(i) - 6]); off += d.path[i] ? 1 : -1; }
+    P.push([cx + off * dx / 2, H - 26]); balls.push({ d, bet, P, off: 0, t0: performance.now(), trail: [] });
+  }
+  function land(b, now) {
+    const slot = b.d.slot; slotHit[slot] = now;
+    pops.push({ x: b.P[17][0], y: H - 44, t: now, text: "+" + fmt(b.d.payout), c: col(b.d.mult) });
+    state.balance += b.d.payout; setBal(state.balance);
+    const r = $("#pkRes"); if (r) { r.className = "res " + (b.d.payout >= b.bet ? "ok" : "bad"); r.textContent = "x" + (b.d.mult / 100).toFixed(2).replace(".", ",") + " · " + (b.d.payout >= b.bet ? "+" : "") + fmt(b.d.payout - b.bet) + " RCoin"; }
+    if (tg && tg.HapticFeedback) tg.HapticFeedback.impactOccurred(b.d.mult >= 200 ? "heavy" : "light");
+    if (balls.length === 1) loadMe();
+  }
+  function frame(now) {
+    if (!alive || !$("#pk")) return;
+    const dpr = window.devicePixelRatio || 1, W = cvs.clientWidth, dx = (W - 24) / 17, cx = W / 2;
+    if (cvs.width !== Math.round(W * dpr)) { cvs.width = Math.round(W * dpr); cvs.height = Math.round(H * dpr); }
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, W, H);
+    ctx.font = "bold 9px sans-serif"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+    PLINKO[risk].forEach((m, k) => {                                   // ячейки с множителями
+      const a = slotHit[k] ? Math.max(0, 1 - (now - slotHit[k]) / 450) : 0, y = H - 40 - Math.sin(a * Math.PI) * 7;
+      rr(cx + (k - 8) * dx - dx / 2 + 1.5, y, dx - 3, 26, 6); ctx.fillStyle = col(m); ctx.globalAlpha = 0.55 + a * 0.45; ctx.fill(); ctx.globalAlpha = 1;
+      ctx.fillStyle = "#fff"; ctx.fillText(lab(m), cx + (k - 8) * dx, y + 13);
+    });
+    for (let i = 0; i < 16; i++) for (let j = 0; j < i + 3; j++) {      // колышки (светятся, когда шарик задел)
+      const x = cx + (j - (i + 2) / 2)
+* dx, y = rowY(i), a = pegHit[i + "," + j] ? Math.max(0, 1 - (now - pegHit[i + "," + j]) / 350) : 0;
+      if (a > 0) { ctx.fillStyle = "rgba(185,156,255," + a * 0.45 + ")"; ctx.beginPath(); ctx.arc(x, y, 3 + a * 7, 0, 7); ctx.fill(); }
+      ctx.fillStyle = a > 0 ? "#fff" : "rgba(220,205,255,.75)"; ctx.beginPath(); ctx.arc(x, y, 2.4, 0, 7); ctx.fill();
+    }
+    for (let n = balls.length - 1; n >= 0; n--) {                       // шарики
+      const b = balls[n], u = (now - b.t0) / SEG;
+      if (u >= 17) { land(b, now); balls.splice(n, 1); continue; }
+      const k = Math.floor(u), f = u - k, [x0, y0] = b.P[k], [x1, y1] = b.P[k + 1], e = f * f * (3 - 2 * f);
+      const x = x0 + (x1 - x0) * e, y = y0 + (y1 - y0) * f * f - (k ? Math.sin(Math.PI * f) * 8 : 0);
+      if (f < 0.05 && k > 0 && b.off !== k) { b.off = k; let o = 0; for (let q = 0; q < k - 1; q++) o += b.d.path[q] ? 1 : -1; pegHit[(k - 1) + "," + (o + k - 1 + 2) / 2] = now; }
+      b.trail.push([x, y]); if (b.trail.length > 9) b.trail.shift();
+      b.trail.forEach(([tx, ty], i) => { ctx.fillStyle = "rgba(185,156,255," + (i / 22) + ")"; ctx.beginPath(); ctx.arc(tx, ty, 2 + i * 0.4, 0, 7); ctx.fill(); });
+      ctx.shadowColor = "#b48cff"; ctx.shadowBlur = 14; ctx.fillStyle = "#fff"; ctx.beginPath(); ctx.arc(x, y, 5.5, 0, 7); ctx.fill(); ctx.shadowBlur = 0;
+    }
+    for (let n = pops.length - 1; n >= 0; n--) {                        // всплывающая выплата
+      const p = pops[n], a = 1 - (now - p.t) / 1100; if (a <= 0) { pops.splice(n, 1); continue; }
+      ctx.globalAlpha = a; ctx.fillStyle = "#fff"; ctx.shadowColor = p.c; ctx.shadowBlur = 12; ctx.font = "800 15px sans-serif"; ctx.fillText(p.text, p.x, p.y - (1 - a) * 40); ctx.shadowBlur = 0; ctx.globalAlpha = 1;
+    }
+    raf = requestAnimationFrame(frame);
+  }
+  $("#pkGo").onclick = async () => {
+    const bet = digits($("#pkBet").value); if (bet < 1) return toast("Минимальная ставка 1 RCoin");
+    $("#pkGo").disabled = true;
+    try { const d = await api("/api/plinko/play", { bet, risk }); state.balance -= bet; setBal(state.balance); launch(d, bet); } catch (e) { toast(e.message); }
+    $("#pkGo").disabled = false;
+  };
+  raf = requestAnimationFrame(frame);
+  crashStop = () => { alive = false; cancelAnimationFrame(raf); loadMe(); };
+}
+
+/* --- Блэкджек --- */
+function gBlackjack() {
+  const SU = ["♠", "♥", "♦", "♣"], RK = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"];
+  const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+  $("#game").innerHTML = `<div class="card bj">
+    <div class="bj-top"><span>Дилер</span><b class="pts" id="dP">–</b></div><div class="hand" id="dH"></div>
+    <div class="bj-line"></div>
+    <div class="hand lg" id="pH"></div><div class="bj-top lg"><span>Вы</span><b class="pts" id="pP">–</b></div>
+    <p class="res" id="bRes"></p>
+    <div id="bBet"><label for="bAmt" style="margin:0 0 7px">Ставка, RCoin (от 10)</label><input id="bAmt" class="field" inputmode="numeric" value="10"></div>
+    <div class="bj-act" id="bAct"></div></div>`;
+  const shown = { p: 0, d: 0 }; let busy = false;
+  const cardHTML = (c, delay) => { const r = c % 13, s = Math.floor(c / 13); return `<div class="pc${s === 1 || s === 2 ? " red" : ""}" style="animation-delay:${delay}ms"><b>${RK[r]}</b><i>${SU[s]}</i></div>`; };
+  function hand(key, cards, base, step) { // добавляет только новые карты; очки растут вместе с картами
+    const el = $(key === "p" ? "#pH" : "#dH"), pid = key === "p" ? "#pP" : "#dP", from = shown[key];
+    el.insertAdjacentHTML("beforeend", cards.slice(from).map((c, i) => cardHTML(c, base + i * step)).join(""));
+    for (let k = from; k < cards.length; k++) setTimeout(() => { const e = $(pid); if (e) { e.textContent = bjScore(cards.slice(0, k + 1)); e.classList.remove("pop"); void e.offsetWidth; e.classList.add("pop"); } }, base + (k - from) * step + 300);
+    shown[key] = cards.length; return base + (cards.length - from) * step;
+  }
+  function reset() { shown.p = shown.d= 0; $("#pH").innerHTML = $("#dH").innerHTML = ""; $("#pH").className = "hand lg"; $("#dH").className = "hand"; $("#pP").textContent = $("#dP").textContent = "–"; $("#bRes").textContent = ""; $("#bRes").className = "res"; }
+  function acts(d) {
+    $("#bBet").hidden = !!(d && d.active);
+    $("#bAct").innerHTML = d && d.active
+      ? `<button class="btn" data-a="stand">Оставить</button><button class="btn" data-a="hit">Взять</button><button class="btn" data-a="hit2">Взять две</button>`
+      : `<button class="btn one" data-a="start">${d && d.status !== "play" ? "Играть снова" : "Играть"}</button>`;
+  }
+  async function render(d, fresh) {
+    busy = true; $("#bAct").style.opacity = ".4";
+    if (fresh) reset();
+    const pEnd = fresh ? hand("p", d.player, 0, 420) : hand("p", d.player, 0, 380);
+    const dEnd = fresh ? hand("d", d.dealer, 210, 420) : hand("d", d.dealer, pEnd + 350, 700);
+    await sleep(Math.max(pEnd, dEnd) + 450);
+    if (d.status !== "play") {
+      const ps = d.ps, win = d.status === "win", lose = d.status === "lose", r = $("#bRes");
+      $("#pH").classList.add(win ? "win" : lose ? "lose" : "x"); if (ps <= 21) $("#dH").classList.add(lose ? "win" : win ? "lose" : "x");
+      r.className = "res pop " + (win ? "ok" : lose ? "bad" : "");
+      r.textContent = win ? (d.ds > 21 ? "Перебор у дилера! +" : "Победа! +") + fmt(d.payout) + " RCoin" : lose ? (ps > 21 ? "Перебор, проигрыш" : "Дилер выиграл") : "Ничья, ставка возвращена";
+      if (tg && tg.HapticFeedback) tg.HapticFeedback.notificationOccurred(win ? "success" : lose ? "error" : "warning");
+      loadMe();
+    }
+    acts(d); busy = false; $("#bAct").style.opacity = "";
+  }
+  $("#bAct").onclick = async (e) => {
+    const b = e.target.closest("button"); if (!b || busy) return;
+    try {
+      if (b.dataset.a === "start") {
+        const bet = digits($("#bAmt").value); if (bet < 10) throw new Error("Минимальная ставка 10 RCoin");
+        const d = await api("/api/bj/start", { bet }); state.balance -= bet; setBal(state.balance); await render(d, true);
+      } else await render(await api("/api/bj/action", { action: b.dataset.a }), false);
+    } catch (err) { toast(err.message); busy = false; $("#bAct").style.opacity = ""; }
+  };
+  acts(null);
+  api("/api/bj/state").then((d) => { if (d.active && $("#pH")) render(d, true); }).catch(() => {});
+}
+
+/* --- Краш --- */
+function gCrash() {
+  $("#game").innerHTML = `<div class="card"><div class="hist" id="cHist"></div>
+    <div class="stage"><canvas id="cvs"></canvas><div class="cm" id="cM">…</div><div class="cs" id="cS"></div></div></div>
+    <div class="card"><label for="cBet" style="margin:0 0 7px">Ставка, RCoin</label><input id="cBet" class="field" inputmode="numeric" value="1">
+    <div class="autor"><span>Авто-вывод (необязательно)</span><input type="checkbox" id="cAutoOn" aria-label="Авто-вывод"></div>
+    <input id="cAuto" class="field" inputmode="decimal" value="2,00" hidden aria-label="Множитель авто-вывода">
+    <button class="btn" id="cGo" disabled>…</button><p class="row" style="justify-content:center"><span id="cInfo"></span></p></div>`;
+  const K = 0.1, cvs = $("#cvs"), ctx = cvs.getContext("2d"), view = { t: 8, m: 2 };
+  const m100 = (t) => Math.min(99999, Math.floor(100 * Math.exp(K * t) + 1e-9));
+  const fm = (v) => "x" + (v / 100).toFixed(2).replace(".", ",");
+  const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+  let S = null, off = 0, alive = true, raf = 0, frozen = null, frozenAt = 0, histKey = "";
+  $("#cAutoOn").onchange = () => ($("#cAuto").hidden = !$("#cAutoOn").checked);
+
+  async function poll() {
+    const t0 = Date.now(), prev = S;
+    try { const s = await api("/api/crash/state"); off = s.now + (Date.now() - t0) / 2 - Date.now(); S = s; } catch (e) { return; }
+    if (prev && prev.phase === "run" && S.phase !== "run" && S.last) { frozen = S.last; frozenAt = Date.now() + off; loadMe(); }
+    const k = S.history.join(",");
+    if (k !== histKey && $("#cHist")) { histKey = k; $("#cHist").innerHTML = S.history.slice().reverse().map((v) => `<span class="${v >= 200 ? "hi" : ""}">${fm(v)}</span>`).join(""); }
+  }
+  function draw(t, mv, bad) {
+    const dpr = window.devicePixelRatio || 1, W = cvs.clientWidth, H = cvs.clientHeight;
+    if (cvs.width !== Math.round(W * dpr)) { cvs.width = Math.round(W * dpr); cvs.height = Math.round(H * dpr); }
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, W, H);
+    const m = mv / 100, pl = 14, pr = 24, pt = 20, pb = 22;
+    view.t += (Math.max(8, t * 1.12) - view.t) * 0.08;      // «камера» отъезжает, когда кривая выходит за окно
+    view.m += (Math.max(2, m * 1.15) - view.m) * 0.08;
+    const X = (tt) => pl + tt / view.t * (W - pl - pr), Y = (mm) => H - pb - (mm - 1) / (view.m - 1) * (H - pt - pb);
+    ctx.lineWidth = 1; ctx.strokeStyle = "rgba(165,135,255,.14)"; ctx.fillStyle = "rgba(169,155,214,.75)"; ctx.font = "11px sans-serif";
+    for (const g of [1.5, 2, 3, 5, 10, 20, 50, 100, 200, 500]) if (g < view.m * 0.95) { ctx.beginPath(); ctx.moveTo(0, Y(g)); ctx.lineTo(W, Y(g)); ctx.stroke(); ctx.fillText("x" + g, 6, Y(g) - 4); }
+    if (t <= 0) return;
+    const N = 80, pts = []; for (let i = 0; i <= N; i++) { const tt = t * i / N; pts.push([X(tt), Y(Math.exp(K * tt))]); }
+    const col = bad ? "#ff5d86" : "#b48cff", [ex, ey] = pts[N], [px, py] = pts[N - 3];
+    ctx.beginPath(); pts.forEach(([x, y], i) => (i ? ctx.lineTo(x, y) : ctx.moveTo(x, y)));
+    ctx.lineJoin = ctx.lineCap = "round"; ctx.lineWidth = 5; ctx.strokeStyle = col; ctx.shadowColor = col; ctx.shadowBlur = 16; ctx.stroke(); ctx.shadowBlur = 0;
+    ctx.lineTo(ex, H); ctx.lineTo(pts[0][0], H); const gr = ctx.createLinearGradient(0, ey, 0, H);
+    gr.addColorStop(0, bad ? "rgba(255,93,134,.28)" : "rgba(161,119,255,.3)"); gr.addColorStop(1, "rgba(161,119,255,0)"); ctx.fillStyle = gr; ctx.fill();
+    ctx.save(); ctx.translate(ex, ey); ctx.rotate(Math.atan2(ey - py, ex - px)); ctx.fillStyle = "#fff"; ctx.shadowColor = col; ctx.shadowBlur = 14;
+    ctx.beginPath(); ctx.moveTo(13, 0); ctx.lineTo(-8, -9); ctx.lineTo(-3, 0); ctx.lineTo(-8, 9); ctx.closePath(); ctx.fill(); ctx.restore();
+  }
+  function ui(mv) {
+    if (!S) return; const b = $("#cGo"), m = S.mine; let txt, dis;
+    if (S.phase === "wait") { if (m) { txt = "Ставка принята: " + fmt(m.bet) + " RCoin" + (m.auto ? " · авто " + fm(m.auto) : ""); dis = true; } else { txt = "Поставить"; dis = false; } }
+    else if (m && m.cashed == null) { txt = "Вывести " + fmt(Math.floor(m.bet * mv / 100)) + " RCoin"; dis = false; }
+    else if (m) { txt = "Выведено " + fm(m.cashed) + " · +" + fmt(m.payout) + " RCoin"; dis = true; }
+    else { txt = "Ждите следующий раунд"; dis = true; }
+    if (b.textContent !== txt) b.textContent = txt; b.disabled = dis;
+    $("#cInfo").textContent = S.players + " игр. · банк " + fmt(S.bank) + " RCoin · комиссия 3%";
+  }
+  function frame() {
+    if (!alive || !$("#cvs")) return;
+    const now = Date.now() + off; let t = 0, mv = 100, bad = false;
+    if (frozen && now - frozenAt < 3500) { mv = frozen; t = Math.log(mv / 100) / K; bad = true; } else frozen = null;
+    const run = !bad && S && S.phase === "run";
+    if (run) { t = Math.max(0, (now - S.startedAt) / 1000); mv = m100(t); }
+    const left = S ? Math.max(0, (S.startsAt - now) / 1000) : 0, cm = $("#cM"), cs = $("#cS");
+    cm.textContent = bad || run ? fm(mv) : S ? left.toFixed(1).replace(".", ",") + " с" : "…";
+    cs.textContent = bad ? "Краш! Следующий раунд через " + Math.ceil(left) + " с" : run ? "" : "до старта раунда";
+    cm.classList.toggle("bad", bad);
+    draw(t, mv, bad); ui(mv); raf = requestAnimationFrame(frame);
+  }
+  $("#cGo").onclick = async () => {
+    if (!S) return; $("#cGo").disabled = true;
+    try {
+      if (S.phase === "wait") {
+        const bet = digits($("#cBet").value); let auto = null;
+        if (bet < 1) throw new Error("Минимальная ставка 1 RCoin");
+        if ($("#cAutoOn").checked) { auto = parseFloat($("#cAuto").value.replace(",", ".")); if (!(auto >= 1.01 && auto <= 999.99)) throw new Error("Авто-вывод от x1,01 до x999,99"); }
+        await api("/api/crash/bet", { bet, auto }); await loadMe();
+      } else {
+        const d = await api("/api/crash/cashout", {});
+        if (tg && tg.HapticFeedback) tg.HapticFeedback.notificationOccurred("success");
+        toast("Выведено " + fm(d.mult) + ": +" + fmt(d.payout) + " RCoin"); await loadMe();
+      }
+      await poll();
+    } catch (e) { toast(e.message); }
+  };
+  (async () => { while (alive) { await poll(); await sleep(S && S.phase === "run" ? 300 : 800); } })();
+  frame(); crashStop = () => { alive = false; cancelAnimationFrame(raf); };
+}
+
+/* --- Кейсы --- */
+let caseTimer;
+async function gCases() {
+  const fm = (c) => String(c).replace(".", ",");
+  $("#game").innerHTML = `<div class="card"><h2 style="margin-bottom:12px">Бесплатный кейс дня</h2>
+    <button class="btn" id="cGo" style="margin:0 0 6px" disabled>Открыть</button><p class="res" id="cRes"></p>
+    <p class="note" style="text-align:left;margin:6px 0">Шансы выпадения</p>
+    ${DROPS.map(([v, c]) => `<div class="drop t${v >= 160 ? 4 : v >= 40 ? 3 : v >= 5 ? 2 : 1}"><b>${v} RCoin</b><span>${fm(c)}%</span></div>`).join("")}</div>`;
+  clearInterval(caseTimer);
+  let nextAt = 0;
+  const tick = () => {
+    const b = $("#cGo"); if (!b) return clearInterval(caseTimer);
+    const left = nextAt - Date.now();
+    if (left > 0) { const s = Math.floor(left / 1000), p = (n) => String(n).padStart(2, "0");
+      b.disabled = true; b.textContent = `Следующий через ${p(Math.floor(s / 3600))}:${p(Math.floor(s % 3600 / 60))}:${p(s % 60)}`; }
+    else { b.disabled = false; b.textContent = "Открыть"; }
+  };
+  try { const st = await api("/api/case/status"); nextAt = st.available ? 0 : st.nextAt; } catch (e) { return toast(e.message); }
+  if (!$("#cGo")) return;
+  tick(); caseTimer = setInterval(tick, 1000);
+  $("#cGo").onclick = async () => {
+    $("#cGo").disabled = true;
+    try { const d = await api("/api/case/open", {}); nextAt = d.nextAt;
+      $("#cRes").className = "res ok"; $("#cRes").textContent = "Выпало " + fmt(d.value) + " RCoin"; await loadMe(); tick();
+    } catch (e) { toast(e.message); tick(); }
+  };
+}
+
+/* ============ Пополнение и админка ============ */
+const readSum = () => digits($("#sum").value);
+function renderSum() {
+  const s = readSum();
+  $("#bonus").textContent = "+" + fmt(bonusOf(s)); $("#total").textContent = fmt(s + bonusOf(s));
+  document.querySelectorAll("#quick button").forEach((b) => b.classList.toggle("on", +b.dataset.v === s));
+}
+$("#sum").oninput = (e) => { const v = Math.min(digits(e.target.value), MAX_SUM); e.target.value = v ? fmt(v) : ""; renderSum(); };
+$("#quick").onclick = (e) => { const b = e.target.closest("button"); if (b) { $("#sum").value = fmt(b.dataset.v); renderSum(); } };
+$("#pay").onclick = async () => {
+  const stars = readSum();
+  if (stars < MIN_SUM || stars > MAX_SUM) return toast("Сумма от 10 до 100 000 звёзд");
+  $("#pay").disabled = true;
+  try {
+    const d = await api("/api/topup", { stars });
+    if (d.invoice_link && tg) tg.openInvoice(d.invoice_link, async (st) => {
+      if (st === "paid") { await loadMe(); toast("Оплата прошла, RCoin начислены"); show("home"); } else if (st === "failed") toast("Оплата не прошла"); });
+    else { await loadMe(); toast("Демо: RCoin начислены"); show("home"); }
+  } catch (e) { toast(e.message); }
+  $("#pay").disabled = false;
+};
+$("#grant").onclick = async () => {
+  const username = $("#aUser").value.trim().replace(/^@/, ""), amount = digits($("#aAmount").value);
+  if (!username) return toast("Введите юзернейм"); if (amount < 1) return toast("Введите количество RCoin");
+  try { await api("/api/admin/grant", { username, amount }); await loadMe(); toast("Выдано " + fmt(amount) + " RCoin @" + username); $("#aAmount").value = ""; }
+  catch (e) { toast(e.message); }
+};
+$("#toTopup").onclick = () => { renderSum(); show("topup"); };
+$("#toAdmin").onclick = () => show("admin");
+$("#avatar").onclick = () => { if (state.role === "admin") show("admin"); };
+$("#logo").onclick = () => show("home");
+
+(async function init() {
+  try { await Promise.all([loadMe(), WINS_ENABLED ? loadWins() : null]); } catch (e) { toast(e.message); }
+  openGame("upgrade"); renderSum(); show("home");
+})();
+</script>
+</body>
+</html>
